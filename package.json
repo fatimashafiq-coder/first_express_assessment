@@ -11,6 +11,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "express": "^5.2.1",
     "nodeman": "^1.1.2",
     "uuid": "^13.0.0"
