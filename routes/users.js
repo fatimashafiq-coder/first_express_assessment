@@ -4,6 +4,26 @@ let usersDetails = require('../usersDetails.json');
 const fs = require("fs");
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+require('dotenv').config(); 
+
+
+const authenticateMiddlware = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ message: "Authorization header missing" });
+    }
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ message: "Token missing" });
+    }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        next();
+};
+
+router.get('/products', authenticateMiddlware, (req, res) => {
+    return res.status(200).json({ message: "Products fetched", user: req.user });
+});
 
 const validateUser = (req, res, next) => {
     if ((!req.body.name) || (!req.body.email) || (!req.body.password)) {
@@ -51,9 +71,14 @@ router.post('/userLogin', (req, res) => {
         if (!isMatch) {
             return res.status(401).send({ message: "Invalid password" });
         }
-        return res.status(200).send({ message: "Login successful" });
+        const token = jwt.sign(
+            {id: user.id, email: user.email},
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+        )
+      
+        return res.status(200).send({ message: "Login successful" , token});
     });
-
 });
 
 router.put("/update/:id", (req, res) => {
